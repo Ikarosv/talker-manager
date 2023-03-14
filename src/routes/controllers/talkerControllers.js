@@ -138,11 +138,22 @@ const mainPutController = async (req, res) => {
   return res.status(200).json(newTalker);
 };
 
+const mainDeleteController = async (req, res) => {
+  const { id } = req.params;
+
+  const fsres = await fs.readFile(jsonTalkerPath, 'utf-8');
+  const talkers = JSON.parse(fsres);
+  const filteredTalkers = talkers.filter((talker) => talker.id !== Number(id));
+  await fs.writeFile(jsonTalkerPath, JSON.stringify(filteredTalkers));
+  return res.status(204).json();
+};
+
 module.exports = {
   mainGetController,
   getTalkerById,
   mainPostController,
   mainPutController,
   tokenMiddleware,
+  mainDeleteController,
   postTalkerMiddleware: [nameMiddleware, ageMiddleware, talkMiddleware],
 };
