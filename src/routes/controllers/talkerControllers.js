@@ -13,12 +13,16 @@ const mainGetController = async (_req, res) => {
   }
 };
 
-const getTalkerById = async (req, res) => {
+const findTalker = async (req) => {
   const { id } = req.params;
+  const talkers = await fs.readFile(jsonTalkerPath, 'utf-8');
+  const parsedTalkers = JSON.parse(talkers);
+  return parsedTalkers.find((talk) => talk.id === Number(id));
+}
+
+const getTalkerById = async (req, res) => {
   try {
-    const talkers = await fs.readFile(jsonTalkerPath, 'utf-8');
-    const parsedTalkers = JSON.parse(talkers);
-    const talker = parsedTalkers.find((talk) => talk.id === Number(id));
+    const talker = await findTalker(req);
     if (!talker) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
     return res.status(200).json(talker);
   } catch (err) {
@@ -114,9 +118,37 @@ const mainPostController = async (req, res) => {
   return res.status(201).json(newTalker);
 };
 
+const mainPutController = async (req, res) => {
+  // const { id } = req.param;
+  const { name, age, talk } = req.body;
+  const { watchedAt, rate } = talk;
+  const talkers = await fs.readFile(jsonTalkerPath, 'utf-8');
+  const parsedTalkers = JSON.parse(talkers);
+  const talker = await findTalker(req);
+
+  if (!talker) {
+    return res.status(404).json({message: "Pessoa palestrante não encontrada"});
+  }
+
+  const newTalker = {
+    ...talker,
+    name,
+    age,
+    talk: {
+      watchedAt,
+      rate,
+    },
+  };
+  parsedTalkers.push(newTalker);
+  await fs.writeFile(jsonTalkerPath, JSON.stringify(parsedTalkers));
+  return res.status(200).json(newTalker);
+};
+
 module.exports = {
   mainGetController,
   getTalkerById,
   mainPostController,
-  postTalkerMiddleware: [tokenMiddleware, nameMiddleware, ageMiddleware, talkMiddleware],
+  mainPutController,
+  tokenMiddleware,
+  postTalkerMiddleware: [nameMiddleware, ageMiddleware, talkMiddleware],
 };
