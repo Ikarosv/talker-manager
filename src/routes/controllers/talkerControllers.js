@@ -18,7 +18,7 @@ const findTalker = async (req) => {
   const talkers = await fs.readFile(jsonTalkerPath, 'utf-8');
   const parsedTalkers = JSON.parse(talkers);
   return parsedTalkers.find((talk) => talk.id === Number(id));
-}
+};
 
 const getTalkerById = async (req, res) => {
   try {
@@ -119,25 +119,19 @@ const mainPostController = async (req, res) => {
 };
 
 const mainPutController = async (req, res) => {
-  // const { id } = req.param;
   const { name, age, talk } = req.body;
   const { watchedAt, rate } = talk;
   const talkers = await fs.readFile(jsonTalkerPath, 'utf-8');
   const parsedTalkers = JSON.parse(talkers);
   const talker = await findTalker(req);
-
   if (!talker) {
-    return res.status(404).json({message: "Pessoa palestrante não encontrada"});
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
   }
-
   const newTalker = {
     ...talker,
     name,
     age,
-    talk: {
-      watchedAt,
-      rate,
-    },
+    talk: { watchedAt, rate },
   };
   parsedTalkers.push(newTalker);
   await fs.writeFile(jsonTalkerPath, JSON.stringify(parsedTalkers));
