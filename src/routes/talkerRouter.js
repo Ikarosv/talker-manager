@@ -7,9 +7,12 @@ const {
   tokenMiddleware,
   mainPutController,
   mainDeleteController,
+  mainGetSearchController,
 } = require('./controllers/talkerControllers');
 
 const talkerRouter = Router();
+
+talkerRouter.get('/search', tokenMiddleware, mainGetSearchController);
 
 talkerRouter.get('/', mainGetController);
 
