@@ -6,6 +6,7 @@ const {
   postTalkerMiddleware,
   tokenMiddleware,
   mainPutController,
+  mainDeleteController,
 } = require('./controllers/talkerControllers');
 
 const talkerRouter = Router();
@@ -17,5 +18,7 @@ talkerRouter.post('/', tokenMiddleware, ...postTalkerMiddleware, mainPostControl
 talkerRouter.get('/:id', getTalkerById);
 
 talkerRouter.put('/:id', tokenMiddleware, ...postTalkerMiddleware, mainPutController);
+
+talkerRouter.delete('/:id', tokenMiddleware, mainDeleteController)
 
 module.exports = talkerRouter;
