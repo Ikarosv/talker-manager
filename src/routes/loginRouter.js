@@ -5,26 +5,27 @@ const loginRouter = Router();
 
 const loginMiddleware = (req, res, next) => {
   const { email, password } = req.body;
-  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
 
   if (!email) {
     return res.status(400).json({ message: 'O campo "email" é obrigatório' });
-  } else if (!emailRegex.test(email)) {
+  }
+  if (!emailRegex.test(email)) {
     return res.status(400).json({ message: 'O "email" deve ter o formato "email@email.com"' });
   }
 
   if (!password) {
     return res.status(400).json({ message: 'O campo "password" é obrigatório' });
-  } else if (password.length < 6) {
+  }
+  if (password.length < 6) {
     return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
   }
 
   next();
-}
+};
 
 loginRouter.post('/', loginMiddleware, (req, res) => {
   try {
-    const { email, password } = req.body;
     crypto.randomBytes(8, (err, buffer) => {
       if (err) {
         return res.status(500).json({ message: err.message });
