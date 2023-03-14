@@ -148,6 +148,18 @@ const mainDeleteController = async (req, res) => {
   return res.status(204).json();
 };
 
+const mainGetSearchController = async (req, res) => {
+  const { q } = req.query;
+
+  const fsres = await fs.readFile(jsonTalkerPath, 'utf-8');
+  const talkers = JSON.parse(fsres);
+  if (!q) {
+    return res.status(200).json(talkers);
+  }
+  const filteredTalkers = talkers.filter((talker) => talker.name.includes(q));
+  return res.status(200).json(filteredTalkers);
+};
+
 module.exports = {
   mainGetController,
   getTalkerById,
@@ -155,5 +167,6 @@ module.exports = {
   mainPutController,
   tokenMiddleware,
   mainDeleteController,
+  mainGetSearchController,
   postTalkerMiddleware: [nameMiddleware, ageMiddleware, talkMiddleware],
 };
