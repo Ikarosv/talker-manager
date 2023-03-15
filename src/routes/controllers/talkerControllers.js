@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 
+const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 const jsonTalkerPath = path.join(__dirname, '../../talker.json');
 
 const mainGetController = async (_req, res) => {
@@ -69,7 +70,6 @@ const ageMiddleware = (req, res, next) => {
 
 const checkTalk = (talk, res) => {
   const { watchedAt, rate } = talk;
-  const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 
   if (!dateRegex.test(watchedAt)) {
     res.status(400).json({ message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"' });
@@ -79,7 +79,7 @@ const checkTalk = (talk, res) => {
     res.status(400).json({ message: 'O campo "rate" deve ser um número inteiro entre 1 e 5' });
     return true;
   }
-  
+
   return false;
 };
 
@@ -95,9 +95,9 @@ const talkMiddleware = (req, res, next) => {
   if (typeof talk.rate === 'undefined') {
     return res.status(400).json({ message: 'O campo "rate" é obrigatório' });
   }
-  
+
   if (checkTalk(talk, res)) return;
-  
+
   next();
 };
 
@@ -160,18 +160,30 @@ const getByRateNumber = (talkers, rateNumber, res) => {
   return filteredTalkers;
 };
 
+const getByWatchedDate = (talkers, watchedDate, res) => {
+  if (!watchedDate) return talkers;
+  console.log(typeof watchedDate);
+  if (!dateRegex.test(watchedDate)) {
+    res.status(400).json({ message: 'O parâmetro "date" deve ter o formato "dd/mm/aaaa"' });
+    return true;
+  }
+  const filteredTalkers = talkers.filter((talker) => talker.talk.watchedAt === watchedDate);
+  console.log(filteredTalkers);
+  return filteredTalkers;
+};
+
 const mainGetSearchController = async (req, res) => {
-  const { q: searchTerm, rate: rateNumber } = req.query;
+  const { q: searchTerm, rate: rateNumber, date: watchedDate } = req.query;
 
   const fsres = await fs.readFile(jsonTalkerPath, 'utf-8');
   const talkers = JSON.parse(fsres);
   let finalReturn = getByRateNumber(talkers, rateNumber, res);
   if (finalReturn === true) return;
-  if (rateNumber && !searchTerm) return res.status(200).json(finalReturn);
-  if (!searchTerm) {
-    return res.status(200).json(talkers);
+  finalReturn = getByWatchedDate(finalReturn, watchedDate, res);
+  if (finalReturn === true) return;
+  if (searchTerm) {
+    finalReturn = finalReturn.filter((talker) => talker.name.includes(searchTerm));
   }
-  finalReturn = finalReturn.filter((talker) => talker.name.includes(searchTerm));
   return res.status(200).json(finalReturn);
 };
 
