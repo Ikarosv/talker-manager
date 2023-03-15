@@ -8,9 +8,12 @@ const {
   mainPutController,
   mainDeleteController,
   mainGetSearchController,
+  mainPatchRateController,
 } = require('./controllers/talkerControllers');
 
 const talkerRouter = Router();
+
+talkerRouter.patch('/rate/:id', tokenMiddleware, mainPatchRateController);
 
 talkerRouter.get('/search', tokenMiddleware, mainGetSearchController);
 
