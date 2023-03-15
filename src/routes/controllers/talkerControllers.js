@@ -38,6 +38,7 @@ const tokenMiddleware = (req, res, next) => {
   if (typeof token === 'undefined') {
     return res.status(401).json({ message: 'Token não encontrado', token });
   }
+  console.log(req.headers);
   if (token.length !== 16) return res.status(401).json({ message: 'Token inválido' });
 
   next();
@@ -78,6 +79,7 @@ const checkTalk = (talk, res) => {
     res.status(400).json({ message: 'O campo "rate" deve ser um número inteiro entre 1 e 5' });
     return true;
   }
+  
   return false;
 };
 
@@ -148,16 +150,29 @@ const mainDeleteController = async (req, res) => {
   return res.status(204).json();
 };
 
+const getByRateNumber = (talkers, rateNumber, res) => {
+  if (!rateNumber) return talkers;
+  if (rateNumber < 1 || rateNumber > 5 || !Number.isInteger(+rateNumber)) {
+    res.status(400).json({ message: 'O campo "rate" deve ser um número inteiro entre 1 e 5' });
+    return true;
+  }
+  const filteredTalkers = talkers.filter((talker) => talker.talk.rate === Number(rateNumber));
+  return filteredTalkers;
+};
+
 const mainGetSearchController = async (req, res) => {
-  const { q } = req.query;
+  const { q: searchTerm, rate: rateNumber } = req.query;
 
   const fsres = await fs.readFile(jsonTalkerPath, 'utf-8');
   const talkers = JSON.parse(fsres);
-  if (!q) {
+  let finalReturn = getByRateNumber(talkers, rateNumber, res);
+  if (finalReturn === true) return;
+  if (rateNumber && !searchTerm) return res.status(200).json(finalReturn);
+  if (!searchTerm) {
     return res.status(200).json(talkers);
   }
-  const filteredTalkers = talkers.filter((talker) => talker.name.includes(q));
-  return res.status(200).json(filteredTalkers);
+  finalReturn = finalReturn.filter((talker) => talker.name.includes(searchTerm));
+  return res.status(200).json(finalReturn);
 };
 
 module.exports = {
