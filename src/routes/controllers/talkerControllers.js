@@ -187,6 +187,25 @@ const mainGetSearchController = async (req, res) => {
   return res.status(200).json(finalReturn);
 };
 
+const mainPatchRateController = async (req, res) => {
+  const { id } = req.params;
+  const { rate } = req.body;
+  if (rate === undefined) return res.status(400).json({ message: 'O campo "rate" é obrigatório' });
+  if (rate < 1 || rate > 5 || !Number.isInteger(rate)) {
+    return res.status(400).json({ message: 'O campo "rate" deve ser um número inteiro entre 1 e 5' });
+  }
+
+  const fsres = await fs.readFile(jsonTalkerPath, 'utf-8');
+  const talkers = JSON.parse(fsres);
+  const talkerIndex = talkers.findIndex((talker) => talker.id === Number(id));
+  if (!talkerIndex) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+  talkers[talkerIndex].talk.rate = rate;
+  await fs.writeFile(jsonTalkerPath, JSON.stringify(talkers));
+  return res.status(204).json();
+};
+
 module.exports = {
   mainGetController,
   getTalkerById,
@@ -195,5 +214,6 @@ module.exports = {
   tokenMiddleware,
   mainDeleteController,
   mainGetSearchController,
+  mainPatchRateController,
   postTalkerMiddleware: [nameMiddleware, ageMiddleware, talkMiddleware],
 };
